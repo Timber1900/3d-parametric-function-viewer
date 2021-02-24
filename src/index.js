@@ -8,7 +8,9 @@ const scene = new Scene();
 
 const camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-const renderer = new WebGLRenderer();
+const renderer = new WebGLRenderer({
+  antialias:  true
+});
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
@@ -17,15 +19,20 @@ document.body.appendChild( renderer.domElement );
 const options = {
   upper: 10,
   lower: 10,
-  expression: "x * y"
+  expression: "x * y",
+  res: 200,
+  xmin: -10,
+  xmax: 10,
+  ymin: -10,
+  ymax: 10
 }
 
-const expressionFunction = math.compile(options.expression);
+let expressionFunction = math.compile(options.expression);
 let currentMesh;
 
-const testFunc = function ( v, u, target ) {
-  const x = (2 * u - 1) * 25;
-  const y = (2 * v - 1) * 25;
+let testFunc = function ( v, u, target ) {
+  const x = u * (options.xmax - options.xmin) + options.xmin;
+  const y = v * (options.ymax - options.ymin) + options.ymin;
   const scope = {x, y}
   const res = expressionFunction.evaluate(scope);
   if (res.hasOwnProperty('re')) {
@@ -41,14 +48,14 @@ const clipPlanes = [
   new Plane( new Vector3( 0, -1, 0 ), options.lower ),
 ];
 
-const geometry = new ParametricGeometry(testFunc, 1000, 1000);
+const geometry = new ParametricGeometry(testFunc, options.res, options.res);
 const material = new MeshNormalMaterial( {
   // color: new Color().setHSL( Math.random(), 0.5, 0.5 ),
   side: DoubleSide,
   clippingPlanes: clipPlanes
 } )
 
-const cube = new Mesh( geometry, material );
+let cube = new Mesh( geometry, material );
 currentMesh = cube;
 scene.add( currentMesh );
 
@@ -58,14 +65,14 @@ helpers.add( new PlaneHelper( clipPlanes[ 1 ], 2, 0x00ff00 ) );
 helpers.visible = true;
 scene.add( helpers );
 
-const planeGeometry = new PlaneGeometry(50, 50, 10, 10);
+let planeGeometry = new PlaneGeometry(2 * Math.max(Math.abs(options.xmax), Math.abs(options.xmin)), 2 * Math.max(Math.abs(options.ymax), Math.abs(options.ymin)), 1, 1);
 const planeMaterial = new MeshBasicMaterial( {
   color: 0xffffff,
   side: DoubleSide,
   opacity: 0.4,
   transparent: true
 } );
-const plane = new Mesh( planeGeometry, planeMaterial );
+let plane = new Mesh( planeGeometry, planeMaterial );
 scene.add( plane );
 plane.rotation.x = Math.PI / 2;
 
@@ -93,63 +100,143 @@ const gui = new dat.GUI();
 const clips = gui.addFolder('Clipping Planes');
 clips.add(options, 'upper', 0, 100).name("Upper clipping").listen().onChange((val) => {
   clipPlanes[1].constant = val;
-  render();
 });
 clips.add(options, 'lower', 0, 100).name("Lower clipping").listen().onChange((val) => {
   clipPlanes[0].constant = val;
-  render();
 });
 clips.open();
 
 const expression = gui.addFolder("Expression");
 expression.add(options, 'expression').onFinishChange(val => {
-  const expressionFunction = math.compile(val);
-
-  const testFunc = function ( v, u, target ) {
-    const x = (2 * u - 1) * 25;
-    const y = (2 * v - 1) * 25;
+  expressionFunction = math.compile(val)
+  testFunc = function ( v, u, target ) {
+    const x = u * (options.xmax - options.xmin) + options.xmin;
+    const y = v * (options.ymax - options.ymin) + options.ymin;
     const scope = {x, y}
     const res = expressionFunction.evaluate(scope);
     if (res.hasOwnProperty('re')) {
-      // target.set( x, res.re, y);
     } else {
       target.set( x, res, y);
     }
   };
-
-  const geometry = new ParametricGeometry(testFunc, 1000, 1000);
-  const material = new MeshNormalMaterial( {
-    // color: new Color().setHSL( Math.random(), 0.5, 0.5 ),
-    side: DoubleSide,
-    clippingPlanes: clipPlanes
-  } )
-
-  const cube = new Mesh( geometry, material );
-  scene.remove( currentMesh );
-  currentMesh = cube;
-  scene.add(currentMesh)
+  const funcGeometry = new ParametricGeometry(testFunc, 1000, 1000);
+  const tempMesh = new Mesh(funcGeometry, material)
+  scene.remove(cube)
+  cube = tempMesh;
+  scene.add(cube)
 });
+expression.add(options, 'res', 10, 2000).step(5).onFinishChange(val => {
+  const funcGeometry = new ParametricGeometry(testFunc, val, val);
+  const tempMesh = new Mesh(funcGeometry, material)
+  scene.remove(cube)
+  cube = tempMesh;
+  scene.add(cube)
+});
+
+const xvals = expression.addFolder("X Values");
+
+xvals.add(options, 'xmax', 0, 100).onFinishChange(val => {
+  testFunc = function ( v, u, target ) {
+    const x = u * (val - options.xmin) + options.xmin;
+    const y = v * (options.ymax - options.ymin) + options.ymin;
+    const scope = {x, y}
+    const res = expressionFunction.evaluate(scope);
+    if (res.hasOwnProperty('re')) {
+    } else {
+      target.set( x, res, y);
+    }
+  };
+  const funcGeometry = new ParametricGeometry(testFunc, 1000, 1000);
+  const tempMesh = new Mesh(funcGeometry, material)
+  scene.remove(cube)
+  cube = tempMesh;
+  scene.add(cube);
+
+  planeGeometry = new PlaneGeometry(2 * Math.max(Math.abs(val), Math.abs(options.xmin)), 2 * Math.max(Math.abs(options.ymax), Math.abs(options.ymin)), 1, 1);
+  scene.remove( plane );
+  plane = new Mesh( planeGeometry, planeMaterial );
+  scene.add( plane );
+  plane.rotation.x = Math.PI / 2;
+});
+
+xvals.add(options, 'xmin', -100, 0).onFinishChange(val => {
+  testFunc = function ( v, u, target ) {
+    const x = u * (options.xmax - val) + val;
+    const y = v * (options.ymax - options.ymin) + options.ymin;
+    const scope = {x, y}
+    const res = expressionFunction.evaluate(scope);
+    if (res.hasOwnProperty('re')) {
+    } else {
+      target.set( x, res, y);
+    }
+  };
+  const funcGeometry = new ParametricGeometry(testFunc, 1000, 1000);
+  const tempMesh = new Mesh(funcGeometry, material)
+  scene.remove(cube)
+  cube = tempMesh;
+  scene.add(cube)
+
+  planeGeometry = new PlaneGeometry(2 * Math.max(Math.abs(options.xmax), Math.abs(val)), 2 * Math.max(Math.abs(options.ymax), Math.abs(options.ymin)), 1, 1);
+  scene.remove( plane );
+  plane = new Mesh( planeGeometry, planeMaterial );
+  scene.add( plane );
+  plane.rotation.x = Math.PI / 2;
+});
+
+xvals.open();
+
+const yvals = expression.addFolder("Y Values");
+
+yvals.add(options, 'ymax', 0, 100).onFinishChange(val => {
+  testFunc = function ( v, u, target ) {
+    const x = u * (options.xmax - options.xmin) + options.xmin;
+    const y = v * (val - options.ymin) + options.ymin;
+    const scope = {x, y}
+    const res = expressionFunction.evaluate(scope);
+    if (res.hasOwnProperty('re')) {
+    } else {
+      target.set( x, res, y);
+    }
+  };
+  const funcGeometry = new ParametricGeometry(testFunc, 1000, 1000);
+  const tempMesh = new Mesh(funcGeometry, material)
+  scene.remove(cube)
+  cube = tempMesh;
+  scene.add(cube);
+
+  planeGeometry = new PlaneGeometry(2 * Math.max(Math.abs(options.xmax), Math.abs(options.xmin)), 2 * Math.max(Math.abs(val), Math.abs(options.ymin)), 1, 1);
+  scene.remove( plane );
+  plane = new Mesh( planeGeometry, planeMaterial );
+  scene.add( plane );
+  plane.rotation.x = Math.PI / 2;
+});
+
+yvals.add(options, 'ymin', -100, 0).onFinishChange(val => {
+  testFunc = function ( v, u, target ) {
+    const x = u * (options.xmax - options.xmin) + options.xmin;
+    const y = v * (options.ymax - val) + val;
+    const scope = {x, y}
+    const res = expressionFunction.evaluate(scope);
+    if (res.hasOwnProperty('re')) {
+    } else {
+      target.set( x, res, y);
+    }
+  };
+  const funcGeometry = new ParametricGeometry(testFunc, 1000, 1000);
+  const tempMesh = new Mesh(funcGeometry, material)
+  scene.remove(cube)
+  cube = tempMesh;
+  scene.add(cube)
+
+  planeGeometry = new PlaneGeometry(2 * Math.max(Math.abs(options.xmax), Math.abs(options.xmin)), 2 * Math.max(Math.abs(options.ymax), Math.abs(val)), 1, 1);
+  scene.remove( plane );
+  plane = new Mesh( planeGeometry, planeMaterial );
+  scene.add( plane );
+  plane.rotation.x = Math.PI / 2;
+});
+
+yvals.open();
 
 expression.open();
 
 animate();
-
-// var geom = new THREE.Geometry();
-// var v1 = new THREE.Vector3(0,0,0);
-// var v2 = new THREE.Vector3(0,500,0);
-// var v3 = new THREE.Vector3(0,500,500);
-
-// geom.vertices.push(v1);
-// geom.vertices.push(v2);
-// geom.vertices.push(v3);
-
-// geom.faces.push( new THREE.Face3( 0, 1, 2 ) );
-// geom.computeFaceNormals();
-
-// var object = new THREE.Mesh( geom, new THREE.MeshNormalMaterial() );
-
-// object.position.z = -100;//move a bit back - size of 500 is a bit big
-// object.rotation.y = -Math.PI * .5;//triangle is pointing in depth, rotate it -90 degrees on Y
-
-// scene.add(object);
-
