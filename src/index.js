@@ -14,8 +14,6 @@ const renderer = new WebGLRenderer({
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-
-
 const options = {
   upper: 10,
   lower: 10,
@@ -42,7 +40,6 @@ let testFunc = function ( v, u, target ) {
   }
 };
 
-
 const clipPlanes = [
   new Plane( new Vector3( 0, 1, 0 ), options.upper ),
   new Plane( new Vector3( 0, -1, 0 ), options.lower ),
@@ -50,7 +47,6 @@ const clipPlanes = [
 
 const geometry = new ParametricGeometry(testFunc, options.res, options.res);
 const material = new MeshNormalMaterial( {
-  // color: new Color().setHSL( Math.random(), 0.5, 0.5 ),
   side: DoubleSide,
   clippingPlanes: clipPlanes
 } )
@@ -76,7 +72,6 @@ let plane = new Mesh( planeGeometry, planeMaterial );
 scene.add( plane );
 plane.rotation.x = Math.PI / 2;
 
-
 const directionalLight = new DirectionalLight( 0xffffff, 1 );
 scene.add( directionalLight );
 const ambientLight = new AmbientLight( 0xffffff, 0.5 );
@@ -84,16 +79,10 @@ scene.add( ambientLight );
 directionalLight.position.y = 5;
 
 const controls = new OrbitControls( camera, renderer.domElement );
-camera.position.z = 5;
+controls.enablePan = false;
+camera.position.z = 10;
 controls.update();
 renderer.localClippingEnabled = true;
-
-function animate() {
-  // cube.rotation.x += 0.01;
-  // cube.rotation.y += 0.01;
-	requestAnimationFrame( animate );
-	renderer.render( scene, camera );
-}
 
 const gui = new dat.GUI();
 
@@ -125,6 +114,7 @@ expression.add(options, 'expression').onFinishChange(val => {
   cube = tempMesh;
   scene.add(cube)
 });
+
 expression.add(options, 'res', 10, 2000).step(5).onFinishChange(val => {
   const funcGeometry = new ParametricGeometry(testFunc, val, val);
   const tempMesh = new Mesh(funcGeometry, material)
@@ -239,4 +229,9 @@ yvals.open();
 
 expression.open();
 
-animate();
+(function animate() {
+  // cube.rotation.x += 0.01;
+  // cube.rotation.y += 0.01;
+	requestAnimationFrame( animate );
+	renderer.render( scene, camera );
+})();
