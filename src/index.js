@@ -93,7 +93,6 @@ clips.add(options, 'upper', 0, 100).name("Upper clipping").listen().onChange((va
 clips.add(options, 'lower', 0, 100).name("Lower clipping").listen().onChange((val) => {
   clipPlanes[0].constant = val;
 });
-clips.open();
 
 const expression = gui.addFolder("Expression");
 expression.add(options, 'expression').onFinishChange(val => {
@@ -173,7 +172,6 @@ xvals.add(options, 'xmin', -100, 0).onFinishChange(val => {
   plane.rotation.x = Math.PI / 2;
 });
 
-xvals.open();
 
 const yvals = expression.addFolder("Y Values");
 
@@ -225,13 +223,13 @@ yvals.add(options, 'ymin', -100, 0).onFinishChange(val => {
   plane.rotation.x = Math.PI / 2;
 });
 
-yvals.open();
-
-expression.open();
+window.onresize = () => {
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+};
 
 (function animate() {
-  // cube.rotation.x += 0.01;
-  // cube.rotation.y += 0.01;
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
 })();
