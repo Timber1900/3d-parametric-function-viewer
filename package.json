@@ -8,12 +8,12 @@
   "dependencies": {
     "dat.gui": "^0.7.7",
     "mathjs": "^9.2.0",
-    "three": "^0.125.2"
+    "three": "^0.126.0"
   },
   "devDependencies": {
     "@types/mathjs": "^6.0.11",
     "@types/three": "^0.125.3",
-    "webpack": "^5.24.0",
+    "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0"
   },
   "scripts": {
