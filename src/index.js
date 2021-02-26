@@ -17,12 +17,16 @@ document.body.appendChild( renderer.domElement );
 const options = {
   upper: 10,
   lower: 10,
-  expression: "x * y",
+  expression: decodeURIComponent(window.location.search).replace('?value=', ''),
   res: 200,
   xmin: -10,
   xmax: 10,
   ymin: -10,
   ymax: 10
+}
+
+if(options.expression === ''){
+  options.expression = 'x*y'
 }
 
 let expressionFunction = math.compile(options.expression);
@@ -45,7 +49,16 @@ const clipPlanes = [
   new Plane( new Vector3( 0, -1, 0 ), options.lower ),
 ];
 
-const geometry = new ParametricGeometry(testFunc, options.res, options.res);
+let geometry;
+
+try{
+  geometry = new ParametricGeometry(testFunc, options.res, options.res);
+} catch(err) {
+  alert(err)
+  console.warn(err)
+  window.location.href = window.location.origin
+}
+
 const material = new MeshNormalMaterial( {
   side: DoubleSide,
   clippingPlanes: clipPlanes
@@ -107,7 +120,17 @@ expression.add(options, 'expression').onFinishChange(val => {
       target.set( x, res, y);
     }
   };
-  const funcGeometry = new ParametricGeometry(testFunc, 1000, 1000);
+
+  let funcGeometry;
+
+  try{
+    funcGeometry = new ParametricGeometry(testFunc, options.res, options.res);
+  } catch(err) {
+    alert(err)
+    console.warn(err)
+    window.location.href = window.location.origin
+  }
+
   const tempMesh = new Mesh(funcGeometry, material)
   scene.remove(cube)
   cube = tempMesh;
