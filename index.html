@@ -9,13 +9,16 @@
     body { margin: 0; }
   </style>
   <link rel='manifest' href='manifest.json'>
+  <link rel='stylesheet' href='style.css'>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 </head>
 <body>
-  <script type="module" src="./index.js"></script>
-  <script>
-    if('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
-  </script>
+  <script src="./index.js"></script>
+  <div class="outer">
+    <p class="para">Input function to graph:</p>
+    <input type='text' name='' id='inp' class="inp">
+    <a href='./renderer/?value=' id="sub" class="sub">Display 3D Graph</a>
+  </div>
 </body>
 </html>
