@@ -8,6 +8,7 @@
   font-family: 'Roboto', sans-serif;
   font-size: min(5vh, 5vw);
   color: #e8e6e3;
+  background-color: #181a1b;
 }
 
 .inp {
@@ -18,6 +19,7 @@
   text-align: center;
   border: #e8e6e3 solid 1px;
   border-radius: 10px;
+  background-color: #181a1b;
 }
 
 .inp:focus {
@@ -46,5 +48,4 @@
 body {
   width: 100vw;
   height: 100vh;
-  background-color: #181a1b;
 }
