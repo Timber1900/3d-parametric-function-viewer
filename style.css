@@ -20,6 +20,7 @@
   border: #e8e6e3 solid 1px;
   border-radius: 10px;
   background-color: #181a1b;
+  color: #e8e6e3;
 }
 
 .inp:focus {
