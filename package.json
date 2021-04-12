@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "dat.gui": "^0.7.7",
-    "mathjs": "^9.3.0",
+    "mathjs": "^9.3.1",
     "three": "^0.126.1"
   },
   "devDependencies": {
