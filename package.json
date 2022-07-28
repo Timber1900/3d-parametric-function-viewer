@@ -8,7 +8,7 @@
   "dependencies": {
     "dat.gui": "^0.7.7",
     "mathjs": "^9.4.4",
-    "three": "^0.128.0"
+    "three": "^0.143.0"
   },
   "devDependencies": {
     "@types/mathjs": "^9.4.2",
